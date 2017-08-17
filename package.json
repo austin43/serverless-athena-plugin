@@ -1,0 +1,25 @@
+{
+  "name": "serverless-athena-plugin",
+  "version": "0.1.0",
+  "description": "A plugin for deploying athena tables via serverless",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/austin43/serverless-athena-plugin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/austin43/serverless-athena-plugin/issues"
+  },
+  "homepage": "https://github.com/austin43/serverless-athena-plugin#readme",
+  "dependencies": {
+    "aws-sdk": "^2.100.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
