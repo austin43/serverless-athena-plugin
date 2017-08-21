@@ -52,6 +52,8 @@ class ServerlessPlugin {
             QueryString: `
               CREATE EXTERNAL TABLE IF NOT EXISTS ${table.name} (${columnString})
               PARTITIONED BY (year string, month string, day string, hour string)
+              ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+              WITH SERDEPROPERTIES ('serialization.format' = '1')
               LOCATION 's3://${service}-${stage}-data/${table.name}/';`,
             ResultConfiguration: {
               OutputLocation: `s3://${service}-${stage}-results/output/`
