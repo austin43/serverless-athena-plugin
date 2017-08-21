@@ -27,8 +27,6 @@ class ServerlessPlugin {
       const stage = this.serverless.service.provider.stage
       const dbName = `${service}-${stage}`.split('-').join('_')
 
-      console.log(dbName, service, stage)
-
       const createDbParams = {
         QueryString: `
           CREATE DATABASE IF NOT EXISTS ${dbName}
@@ -38,19 +36,23 @@ class ServerlessPlugin {
         },
       }
 
-      this.serverless.cli.log(`Trying to deploy athena`)
-
       athena.startQueryExecution(createDbParams).promise().then((res) => {
-        this.serverless.cli.log('Successfully deployed athena database...')
+        this.serverless.cli.log('Deployed Athena Database...')
         const tablePromises = []
-
-
-        // console.log(this.serverless.service.custom.athena.tables)
-
         for(const table of this.serverless.service.custom.athena.tables) {
-          const dropTableParams = {
+          const columns = table.columns
+
+          let columnString = 'id string,created string,updated string,'
+          for(const column of columns) {
+            columnString += `${column},`
+          }
+          columnString = columnString.slice(0,-1)
+
+          const createTableParams = {
             QueryString: `
-              DROP TABLE IF EXISTS ${table.name}`,
+              CREATE EXTERNAL TABLE IF NOT EXISTS ${table.name} (${columnString})
+              PARTITIONED BY (year string, month string, day string, hour string)
+              LOCATION 's3://${service}-${stage}-data/${table.name}/';`,
             ResultConfiguration: {
               OutputLocation: `s3://${service}-${stage}-results/output/`
             },
@@ -58,38 +60,14 @@ class ServerlessPlugin {
               Database: dbName
             }
           }
-          tablePromises.push(athena.startQueryExecution(dropTableParams).promise().then(() => {
-            const columns = table.columns
-
-            let columnString = 'id string,created string,updated string,'
-            for(const column of columns) {
-              columnString += `${column},`
-            }
-            columnString = columnString.slice(0,-1)
-
-            const createTableParams = {
-              QueryString: `
-                CREATE EXTERNAL TABLE ${table.name} (${columnString})
-                PARTITIONED BY (year string, month string, day string, hour string)
-                LOCATION 's3://${service}-${stage}-data/${table.name}/';`,
-              ResultConfiguration: {
-                OutputLocation: `s3://${service}-${stage}-results/output/`
-              },
-              QueryExecutionContext: {
-                Database: dbName
-              }
-            }
-            athena.startQueryExecution(createTableParams).promise()
-          }).catch((err) => {
-            reject(err)
-          }))
+          tablePromises.push(athena.startQueryExecution(createTableParams).promise())
         }
 
 
 
         Promise.all(tablePromises).then(() => {
           resolve()
-          this.serverless.cli.log('Successfully deployed athena tables...')
+          this.serverless.cli.log('Deployed athena tables...')
         }).catch((err) => {
           reject(err)
           this.serverless.cli.log('Error deploying athena tables...', err)
