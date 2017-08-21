@@ -69,7 +69,7 @@ class ServerlessPlugin {
 
         Promise.all(tablePromises).then(() => {
           resolve()
-          this.serverless.cli.log('Deployed athena tables...')
+          this.serverless.cli.log('Deployed Athena Tables...')
         }).catch((err) => {
           reject(err)
           this.serverless.cli.log('Error deploying athena tables...', err)
